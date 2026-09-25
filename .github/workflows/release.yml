@@ -1,9 +1,14 @@
 name: Release
 
-# Tags come from `claude plugin tag --push .`, which names them <plugin>--v<version>.
+# Releases are built by CI/CD: bump "version" in .claude-plugin/plugin.json and push to main.
+# When CI passes on that push, this creates the tag <name>--v<version> and a GitHub release
+# at the tested commit. If that release already exists, it does nothing.
 on:
-  push:
-    tags: ["usage-guard--v*.*.*"]
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,34 +18,41 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  version:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - name: Tag matches plugin.json
-        run: |
-          want="$(jq -r .name .claude-plugin/plugin.json)--v$(jq -r .version .claude-plugin/plugin.json)"
-          test "$want" = "$GITHUB_REF_NAME" \
-            || { echo "::error::Tag $GITHUB_REF_NAME does not match plugin.json ($want)"; exit 1; }
-
-  ci:
-    needs: version
-    uses: ./.github/workflows/ci.yml
-
   release:
-    needs: ci
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - uses: actions/checkout@v7
-      - name: GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
+        with:
+          ref: ${{ env.SHA }}
+      - name: Read version
+        id: v
         run: |
-          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
-            echo "Release $GITHUB_REF_NAME already exists; nothing to do."
+          name=$(jq -r .name .claude-plugin/plugin.json)
+          version=$(jq -r .version .claude-plugin/plugin.json)
+          echo "$name" | grep -Eq '^[a-z0-9][a-z0-9-]*$' \
+            || { echo "::error::plugin.json name '$name' is not kebab-case"; exit 1; }
+          echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            || { echo "::error::plugin.json version '$version' is not x.y.z"; exit 1; }
+          {
+            echo "tag=$name--v$version"
+            echo "title=$name $version"
+          } >> "$GITHUB_OUTPUT"
+      - name: Create the release if it doesn't exist
+        env:
+          TAG: ${{ steps.v.outputs.tag }}
+          TITLE: ${{ steps.v.outputs.title }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Release $TAG already exists; nothing to do."
           else
-            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes \
-              --title "usage-guard ${GITHUB_REF_NAME#usage-guard--}"
+            gh release create "$TAG" --target "$SHA" --generate-notes --title "$TITLE"
+            echo "Created release $TAG at $SHA."
           fi
