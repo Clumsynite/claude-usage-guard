@@ -4,6 +4,14 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:
@@ -14,6 +22,11 @@ jobs:
         run: shellcheck -s sh scripts/usage-guard.sh tests/run.sh
       - name: JSON manifests
         run: jq -e . .claude-plugin/plugin.json .claude-plugin/marketplace.json hooks/hooks.json > /dev/null
+      - name: Manifests agree
+        run: |
+          name=$(jq -r .name .claude-plugin/plugin.json)
+          jq -e --arg n "$name" '.plugins | map(.name) | index($n) != null' .claude-plugin/marketplace.json > /dev/null \
+            || { echo "::error::marketplace.json has no plugin named $name"; exit 1; }
 
   test:
     strategy:
@@ -28,3 +41,6 @@ jobs:
       - name: Script tests under dash
         if: runner.os == 'macOS'
         run: TEST_SH=dash sh tests/run.sh
+      - name: Script tests with the system jq
+        if: runner.os == 'macOS'
+        run: PATH="/usr/bin:$PATH" sh tests/run.sh

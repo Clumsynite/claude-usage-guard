@@ -1,0 +1,46 @@
+name: Release
+
+# Tags come from `claude plugin tag --push .`, which names them <plugin>--v<version>.
+on:
+  push:
+    tags: ["usage-guard--v*.*.*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tag matches plugin.json
+        run: |
+          want="$(jq -r .name .claude-plugin/plugin.json)--v$(jq -r .version .claude-plugin/plugin.json)"
+          test "$want" = "$GITHUB_REF_NAME" \
+            || { echo "::error::Tag $GITHUB_REF_NAME does not match plugin.json ($want)"; exit 1; }
+
+  ci:
+    needs: version
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists; nothing to do."
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes \
+              --title "usage-guard ${GITHUB_REF_NAME#usage-guard--}"
+          fi

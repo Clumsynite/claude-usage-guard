@@ -157,6 +157,18 @@ shellcheck -s sh scripts/usage-guard.sh tests/run.sh
 claude plugin validate --strict . && claude plugin validate --strict .claude-plugin/plugin.json
 ```
 
+## Releasing
+
+CI (`.github/workflows/ci.yml`) runs shellcheck, the manifest checks, and the tests on Ubuntu and macOS (plus dash and the system jq on macOS) for every push to `main` and every pull request.
+
+Releases are tag-driven:
+
+1. Bump `version` in `.claude-plugin/plugin.json`, commit, push, and wait for green CI.
+2. `claude plugin tag --push .` validates the manifests and pushes the tag `usage-guard--v<version>`.
+3. `.github/workflows/release.yml` checks that the tag matches `plugin.json`, reruns the full CI, then creates the GitHub release with generated notes. Re-running it for an existing release does nothing.
+
+Users pick up new versions with `/plugin update usage-guard@clumsyknight-usage-guard`.
+
 ## License
 
 MIT
