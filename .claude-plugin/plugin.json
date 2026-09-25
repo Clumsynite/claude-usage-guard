@@ -1,0 +1,61 @@
+{
+  "name": "usage-guard",
+  "version": "0.1.0",
+  "description": "Pause Claude before its next tool call when your 5-hour or weekly plan usage runs hot with lots of window left, and resume when you reply. Hooks only, zero tokens until it fires; needs a short status line snippet to see usage.",
+  "author": {
+    "name": "Clumsyknight",
+    "email": "clusmsyknight@gmail.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/Clumsynite/claude-usage-guard",
+  "repository": "https://github.com/Clumsynite/claude-usage-guard",
+  "keywords": ["usage", "rate-limit", "quota", "plan", "pause", "hooks"],
+  "userConfig": {
+    "five_hour_pct": {
+      "type": "number",
+      "title": "5-hour trigger (%)",
+      "description": "Pause when 5-hour plan usage is at or above this percentage.",
+      "default": 80,
+      "min": 1,
+      "max": 100
+    },
+    "min_left_min": {
+      "type": "number",
+      "title": "5-hour minimum time left (minutes)",
+      "description": "Only pause if at least this many minutes remain before the 5-hour window resets.",
+      "default": 60,
+      "min": 0,
+      "max": 300
+    },
+    "seven_day_pct": {
+      "type": "number",
+      "title": "Weekly trigger (%)",
+      "description": "Pause when weekly plan usage is at or above this percentage. 0 disables the weekly check.",
+      "default": 90,
+      "min": 0,
+      "max": 100
+    },
+    "weekly_min_left_hours": {
+      "type": "number",
+      "title": "Weekly minimum time left (hours)",
+      "description": "Only pause if at least this many hours remain before the weekly window resets.",
+      "default": 24,
+      "min": 0,
+      "max": 168
+    },
+    "snapshot_path": {
+      "type": "string",
+      "title": "Usage snapshot file",
+      "description": "File your status line writes plan usage to (see the README). A leading ~/ means your home directory.",
+      "default": "~/.cache/claude-usage-guard/usage.json"
+    },
+    "stale_after_sec": {
+      "type": "number",
+      "title": "Snapshot max age (seconds)",
+      "description": "Ignore a snapshot older than this, so stale data never causes a pause.",
+      "default": 900,
+      "min": 60,
+      "max": 86400
+    }
+  }
+}

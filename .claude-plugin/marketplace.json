@@ -1,0 +1,15 @@
+{
+  "name": "clumsyknight-usage-guard",
+  "owner": {
+    "name": "Clumsyknight",
+    "email": "clusmsyknight@gmail.com"
+  },
+  "description": "Pause Claude Code when your plan usage runs hot, before you hit the limit.",
+  "plugins": [
+    {
+      "name": "usage-guard",
+      "source": "./",
+      "description": "Hooks-only guard that pauses Claude when 5-hour or weekly plan usage runs hot."
+    }
+  ]
+}
