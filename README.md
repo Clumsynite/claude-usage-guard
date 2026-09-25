@@ -135,7 +135,7 @@ config:
 
 - `PreToolUse` (every tool) runs `usage-guard.sh check`: one `jq` call reads the hook input and the snapshot. If a rule fires for a window this session hasn't paused for, the hook returns `continue: false` and a `deny` to stop Claude, and marks the session as pending.
 - `UserPromptSubmit` runs `ack`: you replied, so the pause is lifted.
-- `SessionEnd` runs `end`: the session's state is removed, and state older than 8 days is pruned.
+- `SessionEnd` runs `end`: a pending pause is dropped, but the session keeps its record of which windows it already paused for, so a resumed session (same id) does not pause again. State untouched for 8 days is pruned.
 
 State lives in the plugin's data directory (`~/.claude/plugins/data/usage-guard-clumsyknight-usage-guard/state/<session>/`). The guard **fails open**: a missing, stale or malformed snapshot, bad input, or any internal error means no pause, never a blocked tool.
 

@@ -249,7 +249,14 @@ touch -t 202001010000 "$STATE/old"
 OUT=$(hook c95 | "$SH" "$G" end 2>&1)
 RC=$?
 empty "end is silent"
-if [ ! -e "$STATE/c95" ]; then ok "end removes the session"; else no "end removes the session"; fi
+if [ ! -e "$STATE/c95/pending" ]; then ok "end drops the pending pause"; else no "end drops the pending pause"; fi
+if [ -d "$STATE/c95" ] && find "$STATE/c95" -name 'fired-5h-*' | grep -q .; then
+	ok "end keeps the fired markers"
+else
+	no "end keeps the fired markers"
+fi
+chk c95
+empty "a resumed session (same id) does not pause again for the same window"
 if [ ! -e "$STATE/old" ]; then ok "end prunes sessions older than 8 days"; else no "end prunes sessions older than 8 days"; fi
 if [ -d "$STATE/fresh" ]; then ok "end keeps recent sessions"; else no "end keeps recent sessions"; fi
 

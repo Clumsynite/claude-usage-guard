@@ -5,7 +5,7 @@
 #
 #   check   PreToolUse: stop Claude once per session per plan window when usage runs hot
 #   ack     UserPromptSubmit: the user replied, so lift the pause
-#   end     SessionEnd: drop this session's state and prune old sessions
+#   end     SessionEnd: drop a pending pause and prune state older than 8 days
 #   status  for humans: snapshot, windows, effective config, session state
 #
 # Hooks never see plan usage; only the status line does. The user's status line
@@ -172,8 +172,11 @@ ack() {
 end_session() {
 	[ "${USAGE_GUARD_DISABLE:-}" = 1 ] && return
 	sid=$(stdin_sid)
-	valid_sid "$sid" && rm -rf "${STATE:?}/$sid"
-	# Sessions that crashed never ran SessionEnd; drop their state after 8 days.
+	# Keep the fired-* markers: a resumed session has the same id, and must not pause
+	# again for a window it already paused for. Only the pending pause is dropped.
+	valid_sid "$sid" && rm -f "$STATE/$sid/pending"
+	# Windows last at most 7 days, so state untouched for 8 days is dead (this also
+	# covers sessions that crashed and never ran SessionEnd).
 	[ -d "$STATE" ] && find "$STATE" -mindepth 1 -maxdepth 1 -type d -mtime +8 -exec rm -rf {} +
 }
 
