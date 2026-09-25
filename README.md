@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Clumsynite/claude-usage-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/Clumsynite/claude-usage-guard/actions/workflows/ci.yml)
 [![Release](https://github.com/Clumsynite/claude-usage-guard/actions/workflows/release.yml/badge.svg)](https://github.com/Clumsynite/claude-usage-guard/actions/workflows/release.yml)
-[![Latest release](https://img.shields.io/github/v/release/Clumsynite/claude-usage-guard?sort=semver)](https://github.com/Clumsynite/claude-usage-guard/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/Clumsynite/claude-usage-guard?display_name=release)](https://github.com/Clumsynite/claude-usage-guard/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A Claude Code plugin that pauses Claude before its next tool call when your plan usage is running hot: by default, when the 5-hour window is **80% used with at least an hour still to go**, or the weekly window is **90% used with at least a day to go**. You see why it stopped, and Claude continues when you reply.
