@@ -26,6 +26,12 @@ jobs:
           name=$(jq -r .name .claude-plugin/plugin.json)
           jq -e --arg n "$name" '.plugins | map(.name) | index($n) != null' .claude-plugin/marketplace.json > /dev/null \
             || { echo "::error::marketplace.json has no plugin named $name"; exit 1; }
+      - name: README release badge matches plugin.json
+        # The repo is private, so shields.io can't read releases; the badge is static instead.
+        run: |
+          version=$(jq -r .version .claude-plugin/plugin.json)
+          grep -q "img.shields.io/badge/release-v$version-blue" README.md \
+            || { echo "::error::README release badge doesn't say v$version; update it with the version bump"; exit 1; }
 
   test:
     strategy:

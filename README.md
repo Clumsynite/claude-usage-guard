@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Clumsynite/claude-usage-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/Clumsynite/claude-usage-guard/actions/workflows/ci.yml)
 [![Release](https://github.com/Clumsynite/claude-usage-guard/actions/workflows/release.yml/badge.svg)](https://github.com/Clumsynite/claude-usage-guard/actions/workflows/release.yml)
-[![Latest release](https://img.shields.io/github/v/release/Clumsynite/claude-usage-guard?display_name=release)](https://github.com/Clumsynite/claude-usage-guard/releases/latest)
+[![Latest release](https://img.shields.io/badge/release-v0.1.0-blue.svg)](https://github.com/Clumsynite/claude-usage-guard/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A Claude Code plugin that pauses Claude before its next tool call when your plan usage is running hot: by default, when the 5-hour window is **80% used with at least an hour still to go**, or the weekly window is **90% used with at least a day to go**. You see why it stopped, and Claude continues when you reply.
@@ -166,7 +166,7 @@ CI (`.github/workflows/ci.yml`) runs shellcheck, the manifest checks, and the te
 
 Releases are built by CI/CD:
 
-1. Bump `version` in `.claude-plugin/plugin.json`, commit, and push to `main`.
+1. Bump `version` in `.claude-plugin/plugin.json` and the `release-v<version>` badge at the top of this README (CI fails if they differ), commit, and push to `main`.
 2. When CI passes on that push, `.github/workflows/release.yml` creates the tag `usage-guard--v<version>` and a GitHub release with generated notes at the tested commit. If that release already exists (e.g. a push without a version bump), it does nothing. It can also be run by hand from the Actions tab.
 
 Users pick up new versions with `/plugin update usage-guard@clumsyknight-usage-guard`.
